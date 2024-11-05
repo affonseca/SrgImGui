@@ -150,7 +150,6 @@ The following functions can be used to draw each property type:
 |**Array**| ImGui - Array | *(not available; read below)* |
 |**Set**| ImGui - Set | *(not available; read below)* |
 |**Map**| ImGui - Map | *(not available; read below)* |
-&nbsp;
 
 There are also some extra templated functions that are C++ only.
 - ***USrgImGuiTypeLibrary::DrawStructProperty* and *USrgImGuiTypeLibrary::DrawObjectProperty -*** Can be used to draw any property by passing the struct/object container as a parameter. This is the only way to directly inspect Arrays, Maps and Sets in C++.

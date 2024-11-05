@@ -1,0 +1,36 @@
+﻿{
+    "FileVersion": 3,
+    "Version": 1,
+    "VersionName": "1.0",
+    "FriendlyName": "SRG ImGui",
+    "Description": "Extends ImGui functionality, allows BP access and support open and focus control with key chords.",
+    "Category": "Debug",
+    "CreatedBy": "André Fonseca",
+    "CreatedByURL": "",
+    "DocsURL": "",
+    "MarketplaceURL": "",
+    "SupportURL": "",
+    "CanContainContent": true,
+    "IsBetaVersion": false,
+    "IsExperimentalVersion": false,
+    "Installed": false,
+    "Modules": [
+        {
+            "Name": "SrgImGui",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        },
+        {
+            "Name": "SrgImGuiEditor",
+            "Type": "UncookedOnly",
+            "LoadingPhase": "PreDefault"
+        }
+    ],
+
+    "Plugins": [
+        {
+            "Name": "ImGui",
+            "Enabled": true
+        }
+    ]
+}

@@ -4,6 +4,8 @@ SRG ImGui Plugin
 **SRG ImGui** plugin is intended as an extension of the **ImGui** plugin and requires it to work. More information in the [setup section](#implementing-the-plugin).
 The plugin is compatible with **Unreal 5.4 and 5.5**. Other versions of Unreal Engine might require modifications to this plugin in order to compile.
 
+Follow Surgent Studio's [video tutorial](https://www.youtube.com/watch?v=lPn_9V_Waew) for a quick setup guide.
+
 # Table of Contents
 - [Feature Summary](#feature-summary)
 - [Minimal Setup](#minimal-setup)

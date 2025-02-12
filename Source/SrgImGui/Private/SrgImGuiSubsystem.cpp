@@ -8,6 +8,7 @@
 #include "ImGuiModule.h"
 #include "Framework/Application/IInputProcessor.h"
 #include "Framework/Application/SlateApplication.h"
+#include "Slate/SceneViewport.h"
 
 #include "SrgImGuiSettings.h"
 #include "SrgImGuiStringConversion.h"
@@ -17,6 +18,8 @@
 DEFINE_LOG_CATEGORY(LogSrgImGui);
 
 UE_DEFINE_GAMEPLAY_TAG(TAG_SrgImGui_DrawTree, "SrgImGui.DrawTree");
+
+TSet<TWeakObjectPtr<USrgImGuiSubsystem>> USrgImGuiSubsystem::SubsystemsWithVisibleWindow;
 
 class FSrgImGuiInputProcessor : public IInputProcessor
 {
@@ -59,8 +62,35 @@ public:
 		ChordKeys_Actions[3] = ToggleFocusFunction;
 	}
 
+	bool IsRelevantKeyDownEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent) const
+	{
+		UWorld* World = Subsystem.IsValid() ? Subsystem->GetWorld() : nullptr;
+		if (!World)
+		{
+			return false;
+		}
+
+		// When playing in PIE there are multiple worlds and each has a FSrgImGuiInputProcessor.
+		// Only the world in focus should process inputs.
+#if WITH_EDITOR
+		if (World->WorldType == EWorldType::PIE)
+		{
+			UGameViewportClient* GameViewportClient = World->GetGameViewport();
+			FSceneViewport* SceneViewport			= GameViewportClient ? GameViewportClient->GetGameViewport() : nullptr;
+			TSharedPtr<FSlateUser> SlateUser		= SlateApp.GetUser(InKeyEvent.GetUserIndex());
+			return SlateUser.IsValid() && SceneViewport && SlateUser->IsWidgetInFocusPath(SceneViewport->GetWidget().Pin());
+		}
+#endif
+		return true;
+	}
+
 	bool HandleKeyDownEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent) override
 	{
+		if (!IsRelevantKeyDownEvent(SlateApp, InKeyEvent))
+		{
+			return false;
+		}
+
 		for (int32 Index = 0; Index < NUM_CHORD_KEYS; ++Index)
 		{
 			int32& Progress			  = ChordKeys_Progress[Index];
@@ -131,6 +161,11 @@ USrgImGuiSubsystem* USrgImGuiSubsystem::Get(const UObject* WorldContextObject, E
 	return Out;
 }
 
+bool USrgImGuiSubsystem::DoesSupportWorldType(const EWorldType::Type WorldType) const
+{
+	return WorldType == EWorldType::Game || WorldType == EWorldType::PIE;
+}
+
 void USrgImGuiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -151,7 +186,9 @@ void USrgImGuiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	FImGuiModule::Get().GetProperties().SetGamepadNavigationEnabled(true);
 	FImGuiModule::Get().GetProperties().SetKeyboardNavigationEnabled(true);
-	FImGuiModule::Get().GetProperties().SetInputEnabled(false);
+
+	SubsystemsWithVisibleWindow.Remove(this);
+	UpdateFocusBasedOnGlobalVisibility(*this);
 }
 
 void USrgImGuiSubsystem::Deinitialize()
@@ -169,7 +206,8 @@ void USrgImGuiSubsystem::Deinitialize()
 		FSlateApplication::Get().UnregisterInputPreProcessor(InputProcessor);
 	}
 	InputProcessor.Reset();
-	FImGuiModule::Get().GetProperties().SetInputEnabled(false);
+	SubsystemsWithVisibleWindow.Remove(this);
+	UpdateFocusBasedOnGlobalVisibility(*this);
 
 	Super::Deinitialize();
 }
@@ -180,13 +218,14 @@ void USrgImGuiSubsystem::ToggleVisibility()
 	{
 		FImGuiDelegates::OnWorldDebug(GetWorld()).Remove(ImGuiHandle);
 		ImGuiHandle.Reset();
-		FImGuiModule::Get().GetProperties().SetInputEnabled(false);
+		SubsystemsWithVisibleWindow.Remove(this);
 	}
 	else
 	{
 		ImGuiHandle = FImGuiDelegates::OnWorldDebug(GetWorld()).AddUObject(this, &USrgImGuiSubsystem::Draw);
-		FImGuiModule::Get().GetProperties().SetInputEnabled(true);
+		SubsystemsWithVisibleWindow.Add(this);
 	}
+	UpdateFocusBasedOnGlobalVisibility(*this);
 }
 
 void USrgImGuiSubsystem::ToggleFocus()
@@ -196,6 +235,21 @@ void USrgImGuiSubsystem::ToggleFocus()
 		return;
 	}
 	FImGuiModule::Get().GetProperties().ToggleInput();
+}
+
+void USrgImGuiSubsystem::UpdateFocusBasedOnGlobalVisibility(USrgImGuiSubsystem& RequestingSubsystem)
+{
+	// If there is only one subsystem visible and it's the requesting one, then turn on focus.
+	if (SubsystemsWithVisibleWindow.Num() == 1 && SubsystemsWithVisibleWindow.Contains(&RequestingSubsystem))
+	{
+		FImGuiModule::Get().GetProperties().SetInputEnabled(true);
+	}
+	// Also disable focus if no subsystems are currently visible.
+	else if (SubsystemsWithVisibleWindow.Num() == 0)
+	{
+		FImGuiModule::Get().GetProperties().SetInputEnabled(false);
+	}
+	// In any other situation keep the current focus state.
 }
 
 void USrgImGuiSubsystem::Draw()
@@ -217,22 +271,22 @@ void USrgImGuiSubsystem::DrawNodeTag(const FGameplayTag& NodeTag)
 		return;
 	}
 
+	ImGui::PushID(TO_IMGUI(*NodeTag.ToString()));
 	const ESrgImGuiDrawTreeNodeBehavior Behavior =
 		ISrgImGuiDrawTreeNode::Execute_ImGui_DrawTreeNode_Start(CurrentObject.Get(), NodeTag);
-	if (Behavior == ESrgImGuiDrawTreeNodeBehavior::Stop)
+	if (Behavior != ESrgImGuiDrawTreeNodeBehavior::Stop)
 	{
-		return;
-	}
-
-	if (Behavior != ESrgImGuiDrawTreeNodeBehavior::SkipChildren)
-	{
-		for (const FGameplayTag& Child : GetChildrenByPriority(NodeTag))
+		if (Behavior != ESrgImGuiDrawTreeNodeBehavior::SkipChildren)
 		{
-			DrawNodeTag(Child);
+			for (const FGameplayTag& Child : GetChildrenByPriority(NodeTag))
+			{
+				DrawNodeTag(Child);
+			}
 		}
-	}
 
-	ISrgImGuiDrawTreeNode::Execute_ImGui_DrawTreeNode_End(CurrentObject.Get(), NodeTag);
+		ISrgImGuiDrawTreeNode::Execute_ImGui_DrawTreeNode_End(CurrentObject.Get(), NodeTag);
+	}
+	ImGui::PopID();
 }
 
 TArray<FGameplayTag> USrgImGuiSubsystem::GetChildrenByPriority(const FGameplayTag& NodeTag)

@@ -83,9 +83,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Draw Tree", meta = (HidePin = "Node", DefaultToSelf = "Node"))
 	bool UnregisterFromDrawTree(TScriptInterface<ISrgImGuiDrawTreeNode> Node);
 
+protected:
+	virtual bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
+
 private:
 	void ToggleVisibility();
 	void ToggleFocus();
+	static void UpdateFocusBasedOnGlobalVisibility(USrgImGuiSubsystem& RequestingSubsystem);
 
 	void Draw();
 	void DrawNodeTag(const FGameplayTag& NodeTag);
@@ -106,4 +110,6 @@ private:
 	FString CachedToggleVisibilityChordKeys_Gamepad_AsString;
 	FString CachedToggleFocusChordKeys_Keyboard_AsString;
 	FString CachedToggleFocusChordKeys_Gamepad_AsString;
+
+	static TSet<TWeakObjectPtr<USrgImGuiSubsystem>> SubsystemsWithVisibleWindow;
 };

@@ -12,6 +12,7 @@ namespace SrgImGuiTypeDrawer_Private
 		bool ForceDrawDefault	 = false;
 		UClass* RootObjectClass	 = nullptr;
 		FString FieldName;
-		bool Mutable = false;
+		bool Mutable   = false;
+		bool MultiLine = false;
 	};
 }	 // namespace SrgImGuiTypeDrawer_Private

@@ -25,10 +25,11 @@ namespace SrgImGuiTypeDrawer
 	}
 
 	template <typename StringType>
-	bool DrawStringValue(StringType& Value, bool Mutable)
+	bool DrawStringValue(StringType& Value, bool Mutable, bool MultiLine)
 	{
 		SrgImGuiTypeDrawer_Private::FDrawingContext Context;
-		Context.Mutable = Mutable;
+		Context.Mutable	  = Mutable;
+		Context.MultiLine = MultiLine;
 		return SrgImGuiTypeDrawer_Private::DrawStringValue(Value, Context);
 	}
 

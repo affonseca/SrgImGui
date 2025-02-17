@@ -19,10 +19,21 @@ bool SrgImGuiTypeDrawer_Private::DrawStringValue(FString& Value, const FDrawingC
 
 		FPlatformString::Strcpy(TextBufferPtr, TEXT_BUFFER_SIZE, TO_IMGUI(*Value));
 
-		if (ImGui::InputTextMultiline("##", TextBufferPtr, TEXT_BUFFER_SIZE))
+		if (Context.MultiLine)
 		{
-			Value	 = FROM_IMGUI(TextBufferPtr);
-			Modified = true;
+			if (ImGui::InputTextMultiline("##", TextBufferPtr, TEXT_BUFFER_SIZE))
+			{
+				Value	 = FROM_IMGUI(TextBufferPtr);
+				Modified = true;
+			}
+		}
+		else
+		{
+			if (ImGui::InputText("##", TextBufferPtr, TEXT_BUFFER_SIZE))
+			{
+				Value	 = FROM_IMGUI(TextBufferPtr);
+				Modified = true;
+			}
 		}
 
 		ImGui::SameLine();
@@ -37,6 +48,10 @@ bool SrgImGuiTypeDrawer_Private::DrawStringValue(FString& Value, const FDrawingC
 		if (Value.IsEmpty())
 		{
 			ImGui::TextColored(ImVec4(1.f, 0.f, 0.f, 1.f), "{Empty}");
+		}
+		else if (Context.MultiLine)
+		{
+			ImGui::TextWrapped("%s", TO_IMGUI(*Value));
 		}
 		else
 		{

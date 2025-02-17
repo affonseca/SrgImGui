@@ -94,7 +94,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "SRG ImGui|Type|String",
 			  meta = (DisplayName = "ImGui - String", ReturnDisplayName = "Modified?"))
-	static bool DrawString(const FString& Name, UPARAM(ref) FString& Value, bool Mutable = false);
+	static bool DrawString(const FString& Name, UPARAM(ref) FString& Value, bool Mutable = false, bool MultiLine = false);
 	/**
 	 * Draws a name property using a default drawer.
 	 * @param Name The name of the name variable to draw.
@@ -104,7 +104,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "SRG ImGui|Type|String",
 			  meta = (DisplayName = "ImGui - Name", ReturnDisplayName = "Modified?"))
-	static bool DrawName(const FString& Name, UPARAM(ref) FName& Value, bool Mutable = false);
+	static bool DrawName(const FString& Name, UPARAM(ref) FName& Value, bool Mutable = false, bool MultiLine = false);
 	/**
 	 * Draws a text property using a default drawer.
 	 * @param Name The name of the text variable to draw.
@@ -114,13 +114,13 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "SRG ImGui|Type|String",
 			  meta = (DisplayName = "ImGui - Text", ReturnDisplayName = "Modified?"))
-	static bool DrawText(const FString& Name, UPARAM(ref) FText& Value, bool Mutable = false);
+	static bool DrawText(const FString& Name, UPARAM(ref) FText& Value, bool Mutable = false, bool MultiLine = false);
 
 	template <typename StringType>
-	static bool DrawStringT(const FString& Name, StringType& Value, bool Mutable = false)
+	static bool DrawStringT(const FString& Name, StringType& Value, bool Mutable = false, bool MultiLine = false)
 	{
 		DrawVarStart(Name);
-		const bool WasModified = SrgImGuiTypeDrawer::DrawStringValue(Value, Mutable);
+		const bool WasModified = SrgImGuiTypeDrawer::DrawStringValue(Value, Mutable, MultiLine);
 		DrawVarEnd();
 		return WasModified;
 	}

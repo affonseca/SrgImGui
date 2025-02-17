@@ -34,19 +34,19 @@ bool USrgImGuiTypeLibrary::DrawDouble(const FString& Name, double& Value, bool M
 	return DrawPrimitive(Name, Value, Mutable);
 }
 
-bool USrgImGuiTypeLibrary::DrawString(const FString& Name, FString& Value, bool Mutable /*= false*/)
+bool USrgImGuiTypeLibrary::DrawString(const FString& Name, FString& Value, bool Mutable /*= false*/, bool MultiLine /* = false*/)
 {
-	return DrawStringT(Name, Value, Mutable);
+	return DrawStringT(Name, Value, Mutable, MultiLine);
 }
 
-bool USrgImGuiTypeLibrary::DrawName(const FString& Name, FName& Value, bool Mutable /*= false*/)
+bool USrgImGuiTypeLibrary::DrawName(const FString& Name, FName& Value, bool Mutable /*= false*/, bool MultiLine /* = false*/)
 {
-	return DrawStringT(Name, Value, Mutable);
+	return DrawStringT(Name, Value, Mutable, MultiLine);
 }
 
-bool USrgImGuiTypeLibrary::DrawText(const FString& Name, FText& Value, bool Mutable /*= false*/)
+bool USrgImGuiTypeLibrary::DrawText(const FString& Name, FText& Value, bool Mutable /*= false*/, bool MultiLine /* = false*/)
 {
-	return DrawStringT(Name, Value, Mutable);
+	return DrawStringT(Name, Value, Mutable, MultiLine);
 }
 
 bool USrgImGuiTypeLibrary::DrawEnum_K2Node(const FString& Name, uint8& EnumValue, const FString& EnumClass, bool Mutable)

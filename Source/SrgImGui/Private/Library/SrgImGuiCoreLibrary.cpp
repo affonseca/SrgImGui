@@ -217,7 +217,7 @@ bool USrgImGuiCoreLibrary::SmallButtonColored(const FString& Label, FLinearColor
 bool USrgImGuiCoreLibrary::Combo(const FString& Label, const TArray<FString>& Items, int32& SelectedItemIndex)
 {
 	const int32 PreviousSelectedItemIndex = SelectedItemIndex;
-	SelectedItemIndex					  = FMath::Clamp(SelectedItemIndex, 0, Items.Num());
+	SelectedItemIndex					  = Items.Num() > 0 ? FMath::Clamp(SelectedItemIndex, 0, Items.Num() - 1) : INDEX_NONE;
 
 	const FString SelectedItemLabel = Items.Num() > 0 ? Items[SelectedItemIndex] : TEXT("");
 
@@ -238,13 +238,13 @@ bool USrgImGuiCoreLibrary::Combo(const FString& Label, const TArray<FString>& It
 		ImGui::EndCombo();
 	}
 
-	return SelectedItemIndex != PreviousSelectedItemIndex;
+	return SelectedItemIndex != PreviousSelectedItemIndex && SelectedItemIndex != INDEX_NONE;
 }
 
 bool USrgImGuiCoreLibrary::List(const FString& Label, const TArray<FString>& Items, int32& SelectedItemIndex)
 {
 	const int32 PreviousSelectedItemIndex = SelectedItemIndex;
-	SelectedItemIndex					  = FMath::Clamp(SelectedItemIndex, 0, Items.Num());
+	SelectedItemIndex					  = Items.Num() > 0 ? FMath::Clamp(SelectedItemIndex, 0, Items.Num() - 1) : INDEX_NONE;
 
 	if (ImGui::BeginListBox(TO_IMGUI(*Label)))
 	{
@@ -263,7 +263,7 @@ bool USrgImGuiCoreLibrary::List(const FString& Label, const TArray<FString>& Ite
 		ImGui::EndListBox();
 	}
 
-	return SelectedItemIndex != PreviousSelectedItemIndex;
+	return SelectedItemIndex != PreviousSelectedItemIndex && SelectedItemIndex != INDEX_NONE;
 }
 
 bool USrgImGuiCoreLibrary::ColorEdit(const FString& Label, FColor& Color)
